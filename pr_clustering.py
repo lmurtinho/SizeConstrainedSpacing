@@ -3,24 +3,35 @@ import numpy as np
 class PRClustering():
 
   def __init__(self, n_clusters, alpha=0.25, 
+               n_init = 'square',
                dist_func=lambda x, y: np.linalg.norm(x - y), 
                random_state=None):
     self.n_clusters = n_clusters
     self.alpha = alpha
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
+    self.n_init = n_init
   
   def find_first_point(self, X):
     n = len(X)
-    test_n = int(np.floor(np.sqrt(n)))
+    if self.n_init == 'square':
+        test_n = int(np.floor(np.sqrt(n)))
+    elif self.n_init == 'all':
+        test_n = n
+    elif type(self.n_init) == int:
+        test_n = self.n_init
+    elif type(self.n_init) == float:
+        test_n = int(np.floor(self.n_init * n))
+    else:
+        test_n = 1
     to_test = self.rng.integers(0, n, test_n)
     max_dist = 0
     ans = -1
     for i in to_test:
-      dist = sum([self.dist_func(X[i], X[j]) for j in range(n)])
-      if dist > max_dist:
-        ans = i
-        max_dist = dist
+        dist = sum([self.dist_func(X[i], X[j]) for j in range(n)])
+        if dist > max_dist: 
+            ans = i
+            max_dist = dist
     return ans
   
   def find_distant_neighbor(self, X, u=None, i=None):

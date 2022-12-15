@@ -23,16 +23,19 @@ class PRClustering():
         max_dist = dist
     return ans
   
-  def find_distant_neighbor(self, X):
+  def find_distant_neighbor(self, X, u=None, i=None):
     n = len(X)
     max_dist = -1
     ans = -1
-    for i in range(n):
-      dist = sum([self.dist_func(X[i], X[j]) 
-                  for j in self.u_centers + self.v_centers])
-      if dist > max_dist:
-        max_dist = dist
-        ans = i
+    for v in range(n):
+        dist = sum([self.dist_func(X[v], X[j])
+                    for j in self.u_centers + self.v_centers])
+        if u is not None:
+            factor = self.n_clusters - 2*i + 2
+            dist += self.dist_func(X[v], X[u]) * factor
+        if dist > max_dist:
+            max_dist = dist
+            ans = i
     return ans
   
   def fit(self, X, y=None):
@@ -42,15 +45,15 @@ class PRClustering():
     self.u_centers = []
     self.v_centers = []
 
-    for i in range(k_):
-      if len(self.u_centers) == 0:
-        u = self.find_first_point(X)
-      else:
-        u = self.find_distant_neighbor(X)
-      self.u_centers.append(u)
-      v = self.find_distant_neighbor(X)
-      self.v_centers.append(v)
-  
+    for i in range(1, k_+1):
+        if len(self.u_centers) == 0:
+           u = self.find_first_point(X)
+        else:
+           u = self.find_distant_neighbor(X)
+        v = self.find_distant_neighbor(X, u, i)
+        self.u_centers.append(u)
+        self.v_centers.append(v)
+
   def predict(self, X):
     return [self.find_label(X, v) for v in X]
   

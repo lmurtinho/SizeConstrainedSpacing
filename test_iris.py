@@ -8,7 +8,7 @@ d = load_iris()
 data = d['data']
 labels = d['target']
 k = len(np.unique(labels))
-seed = 42
+seed = 10
 
 km = KMeans(n_clusters=k, random_state=seed)
 km.fit(data)

@@ -24,7 +24,7 @@ class PRClustering():
         test_n = int(np.floor(self.n_init * n))
     else:
         test_n = 1
-    to_test = self.rng.integers(0, n, test_n)
+    to_test = self.rng.choice(n, test_n, replace=False)
     max_dist = 0
     ans = -1
     for i in to_test:

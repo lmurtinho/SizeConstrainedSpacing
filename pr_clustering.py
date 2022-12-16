@@ -46,7 +46,7 @@ class PRClustering():
             dist += self.dist_func(X[v], X[u]) * factor
         if dist > max_dist:
             max_dist = dist
-            ans = i
+            ans = v
     return ans
   
   def fit(self, X, y=None):

@@ -52,6 +52,8 @@ class PRClustering():
   def fit(self, X, y=None):
     # two "centers" will be selected at each iteration
     k_ = self.n_clusters // 2
+    if self.n_clusters % 2 == 0:
+        k_ -= 1
     
     self.u_centers = []
     self.v_centers = []

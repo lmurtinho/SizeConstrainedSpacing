@@ -1,3 +1,6 @@
 /__pycache__
 /labels
+/results
+retrieve_labels.ipynb
 test.ipynb
+results.csv

@@ -6,18 +6,15 @@ from sklearn.metrics.pairwise import euclidean_distances
 import networkx as nx
 import numpy as np
 
-def get_min_dist(dists, labels, c1, c2):
-  wd = dists[labels==c1][:,labels==c2]
-  return wd.min()
-
-def get_all_dists(vector_dists, labels):
+def get_all_dists(data, labels):
   unique_labels = np.unique(labels)
   n_labels = len(unique_labels)
   ans = np.zeros((n_labels, n_labels))
   for i in range(n_labels):
     for j in range(i, n_labels):
       if i != j:
-        ans[i,j] = ans[j,i] = get_min_dist(vector_dists, labels, i, j)
+        ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
+                                                  data[labels==j]).min()
   return ans
 
 def get_mst_edges(dists):

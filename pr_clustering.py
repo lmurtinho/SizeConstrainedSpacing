@@ -7,6 +7,7 @@ class PRClustering():
                dist_func=lambda x, y: np.linalg.norm(x - y), 
                random_state=None):
     self.n_clusters = n_clusters
+    self.n_d = 1 if n_clusters % 2 else 2
     self.alpha = alpha
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
@@ -51,14 +52,12 @@ class PRClustering():
   
   def fit(self, X, y=None):
     # two "centers" will be selected at each iteration
-    k_ = self.n_clusters // 2
-    if self.n_clusters % 2 == 0:
-        k_ -= 1
+    k_ = (self.n_clusters - self.n_d) // 2
     
     self.u_centers = []
     self.v_centers = []
 
-    for i in range(1, k_+1):
+    for i in range(k_):
         if len(self.u_centers) == 0:
            u = self.find_first_point(X)
         else:

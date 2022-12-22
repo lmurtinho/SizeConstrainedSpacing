@@ -29,8 +29,8 @@ def get_graph_edges(dists):
   return g.edges.data()
 
 def get_scores(data, labels, true_labels=None):
-  vector_dists = euclidean_distances(data)
-  dists = get_all_dists(vector_dists, labels)
+  # vector_dists = euclidean_distances(data)
+  dists = get_all_dists(data, labels)
   graph_edges = get_graph_edges(dists)
   mst_edges = get_mst_edges(dists)
   mst_weights = [edge[2]['weight'] for edge in mst_edges]

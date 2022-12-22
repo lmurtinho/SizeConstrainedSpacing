@@ -67,9 +67,27 @@ class PRClustering():
         self.v_centers.append(v)
 
   def predict(self, X):
-    return [self.find_label(X, v) for v in X]
+    labels = []
+    for v in X:
+      labels.append(self.find_label(X, v, labels))
+    return labels
   
-  def find_label(self, X, v):
+  def find_best_d(self, X, v, labels):
+    d1 = self.n_clusters - 1
+    d2 = self.n_clusters - 2
+    min_dist1 = np.inf
+    min_dist2 = np.inf
+    for i in range(len(labels)):
+      if labels[i] == d1:
+        min_dist1 = min(min_dist1, self.dist_func(v, X[i]))
+      elif labels[i] == d2:
+        min_dist2 = min(min_dist2, self.dist_func(v, X[i]))
+    if min_dist1 < min_dist2:
+      return d1
+    else:
+      return d2
+
+  def find_label(self, X, v, labels):
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
@@ -84,5 +102,8 @@ class PRClustering():
         if dists_p[1] < dists_p[0]:
           label += n_u
     if label is None:
-      label = 2 * n_u
+      if self.n_d == 1:
+        label = 2 * n_u
+      else:
+        label = self.find_best_d(X, v, labels)
     return label

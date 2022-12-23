@@ -1,4 +1,6 @@
 import numpy as np
+from tqdm import tqdm
+from sklearn.metrics.pairwise import euclidean_distances
 
 class PRClustering():
 
@@ -7,7 +9,7 @@ class PRClustering():
                dist_func=lambda x, y: np.linalg.norm(x - y), 
                random_state=None):
     self.n_clusters = n_clusters
-    self.n_d = 1 if n_clusters % 2 else 2
+    self.d_cluster = bool(n_clusters % 2)
     self.alpha = alpha
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
@@ -29,7 +31,8 @@ class PRClustering():
     max_dist = 0
     ans = -1
     for i in to_test:
-        dist = sum([self.dist_func(X[i], X[j]) for j in range(n)])
+        dist = euclidean_distances(X[i].reshape(1, -1), X).sum()
+        # dist = sum([self.dist_func(X[i], X[j]) for j in range(n)])
         if dist > max_dist: 
             ans = i
             max_dist = dist
@@ -40,24 +43,30 @@ class PRClustering():
     max_dist = -1
     ans = -1
     for v in range(n):
-        dist = sum([self.dist_func(X[v], X[j])
-                    for j in self.u_centers + self.v_centers])
-        if u is not None:
-            factor = self.n_clusters - 2*i + 2
-            dist += self.dist_func(X[v], X[u]) * factor
-        if dist > max_dist:
-            max_dist = dist
-            ans = v
+        if v not in self.u_centers + self.v_centers:
+          # dist = sum([self.dist_func(X[v], X[j])
+          #             for j in self.u_centers + self.v_centers])
+          if self.u_centers + self.v_centers:
+            dist = euclidean_distances(X[v].reshape(1, -1),
+                                        X[self.u_centers + self.v_centers]).sum()
+          else:
+            dist = 0
+          if u is not None:
+              factor = self.n_clusters - 2*i + 2
+              dist += self.dist_func(X[v], X[u]) * factor
+          if dist > max_dist:
+              max_dist = dist
+              ans = v
     return ans
   
   def fit(self, X, y=None):
     # two "centers" will be selected at each iteration
-    k_ = (self.n_clusters - self.n_d) // 2
     
     self.u_centers = []
     self.v_centers = []
 
-    for i in range(k_):
+    k_ = self.n_clusters // 2
+    for i in tqdm(range(k_)):
         if len(self.u_centers) == 0:
            u = self.find_first_point(X)
         else:
@@ -65,32 +74,26 @@ class PRClustering():
         v = self.find_distant_neighbor(X, u, i)
         self.u_centers.append(u)
         self.v_centers.append(v)
+    assert len(self.u_centers) == self.n_clusters // 2
+    assert len(self.v_centers) == self.n_clusters // 2
 
   def predict(self, X):
     labels = []
-    for v in X:
-      labels.append(self.find_label(X, v, labels))
-    return labels
-  
-  def find_best_d(self, X, v, labels):
-    d1 = self.n_clusters - 1
-    d2 = self.n_clusters - 2
-    min_dist1 = np.inf
-    min_dist2 = np.inf
-    for i in range(len(labels)):
-      if labels[i] == d1:
-        min_dist1 = min(min_dist1, self.dist_func(v, X[i]))
-      elif labels[i] == d2:
-        min_dist2 = min(min_dist2, self.dist_func(v, X[i]))
-    if min_dist1 < min_dist2:
-      return d1
-    else:
-      return d2
+    for i in tqdm(range(len(X))):
+      if i in self.u_centers:
+        labels.append(self.u_centers.index(i))
+      elif i in self.v_centers:
+        labels.append(self.v_centers.index(i) + len(self.u_centers))
+      else:
+        labels.append(self.find_label(X, X[i]))
+    return np.array(labels, dtype=int)
 
-  def find_label(self, X, v, labels):
+  def find_label(self, X, v):
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
+    if not self.d_cluster:
+      n_u -= 1
     for i in range(n_u):
       dists_p = [self.dist_func(v, X[self.u_centers[i]]), 
                  self.dist_func(v, X[self.v_centers[i]])]
@@ -102,8 +105,12 @@ class PRClustering():
         if dists_p[1] < dists_p[0]:
           label += n_u
     if label is None:
-      if self.n_d == 1:
+      if self.d_cluster:
         label = 2 * n_u
       else:
-        label = self.find_best_d(X, v, labels)
+        label = i+1
+        dists_p = [self.dist_func(v, X[self.u_centers[i+1]]),
+                   self.dist_func(v, X[self.v_centers[i+1]])]
+        if dists_p[0] > dists_p[1]:
+          label += n_u
     return label

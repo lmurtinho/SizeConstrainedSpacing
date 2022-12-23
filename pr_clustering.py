@@ -28,15 +28,8 @@ class PRClustering():
     else:
         test_n = 1
     to_test = self.rng.choice(n, test_n, replace=False)
-    max_dist = 0
-    ans = -1
-    for i in to_test:
-        dist = euclidean_distances(X[i].reshape(1, -1), X).sum()
-        # dist = sum([self.dist_func(X[i], X[j]) for j in range(n)])
-        if dist > max_dist: 
-            ans = i
-            max_dist = dist
-    return ans
+    dists = euclidean_distances(X[to_test], X).sum(axis=1)
+    return to_test[np.argmax(dists)]
   
   def find_distant_neighbor(self, X, u=None, i=None):
     n = len(X)

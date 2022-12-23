@@ -74,16 +74,20 @@ class PRClustering():
 
   def predict(self, X):
     labels = []
+    dists_uv = np.array([self.dist_func(X[self.u_centers[i]],
+                                        X[self.v_centers[i]])
+                         for i in range(len(self.u_centers))])
+    dists_uv *= self.alpha
     for i in tqdm(range(len(X))):
       if i in self.u_centers:
         labels.append(self.u_centers.index(i))
       elif i in self.v_centers:
         labels.append(self.v_centers.index(i) + len(self.u_centers))
       else:
-        labels.append(self.find_label(X, X[i]))
+        labels.append(self.find_label(X, X[i], dists_uv))
     return np.array(labels, dtype=int)
 
-  def find_label(self, X, v):
+  def find_label(self, X, v, dists_uv):
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
@@ -93,9 +97,7 @@ class PRClustering():
       dists_p = [self.dist_func(v, X[self.u_centers[i]]), 
                  self.dist_func(v, X[self.v_centers[i]])]
       min_dist_p = min(dists_p)
-      dist_i = self.dist_func(X[self.u_centers[i]], 
-                              X[self.v_centers[i]]) * self.alpha
-      if (min_dist_p < dist_i) and (min_dist_p < min_dist):
+      if (min_dist_p < dists_uv[i]) and (min_dist_p < min_dist):
         if self.min_dist:
           min_dist = min_dist_p
         label = 2 * i

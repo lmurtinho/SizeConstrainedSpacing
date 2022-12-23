@@ -6,7 +6,8 @@ class PRClustering():
 
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
-               dist_func=lambda x, y: np.linalg.norm(x - y), 
+               dist_func=lambda x, y: np.linalg.norm(x - y),
+               min_dist = True,
                random_state=None):
     self.n_clusters = n_clusters
     self.d_cluster = bool(n_clusters % 2)
@@ -14,6 +15,7 @@ class PRClustering():
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
+    self.min_dist = min_dist
   
   def find_first_point(self, X):
     n = len(X)
@@ -94,7 +96,8 @@ class PRClustering():
       dist_i = self.dist_func(X[self.u_centers[i]], 
                               X[self.v_centers[i]]) * self.alpha
       if (min_dist_p < dist_i) and (min_dist_p < min_dist):
-        min_dist = min_dist_p
+        if self.min_dist:
+          min_dist = min_dist_p
         label = 2 * i
         if dists_p[1] < dists_p[0]:
           label += 1

@@ -5,12 +5,13 @@ from sklearn.metrics import normalized_mutual_info_score as nmi
 from sklearn.metrics.pairwise import euclidean_distances
 import networkx as nx
 import numpy as np
+from tqdm import tqdm
 
 def get_all_dists(data, labels):
   unique_labels = np.unique(labels)
   n_labels = len(unique_labels)
   ans = np.zeros((n_labels, n_labels))
-  for i in range(n_labels):
+  for i in tqdm(range(n_labels)):
     for j in range(i, n_labels):
       if i != j:
         ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],

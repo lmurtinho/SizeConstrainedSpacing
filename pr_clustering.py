@@ -94,16 +94,15 @@ class PRClustering():
       dist_i = self.dist_func(X[self.u_centers[i]], 
                               X[self.v_centers[i]]) * self.alpha
       if (min_dist_p < dist_i) and (min_dist_p < min_dist):
-        label = i 
+        min_dist = min_dist_p
+        label = 2 * i
         if dists_p[1] < dists_p[0]:
-          label += n_u
+          label += 1
     if label is None:
-      if self.d_cluster:
-        label = 2 * n_u
-      else:
-        label = i+1
+      label = 2 * n_u
+      if not self.d_cluster:
         dists_p = [self.dist_func(v, X[self.u_centers[i+1]]),
                    self.dist_func(v, X[self.v_centers[i+1]])]
-        if dists_p[0] > dists_p[1]:
-          label += n_u
+        if dists_p[1] < dists_p[0]:
+          label += 1
     return label

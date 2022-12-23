@@ -5,3 +5,4 @@ retrieve_labels.ipynb
 test.ipynb
 results*.csv
 .DS_Store
+/logs

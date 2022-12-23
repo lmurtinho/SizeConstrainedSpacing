@@ -111,3 +111,7 @@ class PRClustering():
         if dists_p[1] < dists_p[0]:
           label += 1
     return label
+
+  def fit_predict(self, X, y=None):
+    self.fit(X)
+    return self.predict(X)

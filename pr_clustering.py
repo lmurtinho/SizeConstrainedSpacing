@@ -8,6 +8,7 @@ class PRClustering():
                n_init = 'square',
                dist_func=lambda x, y: np.linalg.norm(x - y),
                min_dist = True,
+               use_centroids = False,
                random_state=None):
     self.n_clusters = n_clusters
     self.d_cluster = bool(n_clusters % 2)
@@ -15,7 +16,8 @@ class PRClustering():
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
-    self.min_dist = min_dist
+    self.min_dist = min_dist if not use_centroids else True
+    self.use_centroids = use_centroids
   
   def find_first_point(self, X):
     n = len(X)
@@ -76,6 +78,14 @@ class PRClustering():
     assert len(self.u_centers) == k_
     assert len(self.v_centers) == k_
     assert len(np.unique(self.u_centers + self.v_centers)) == 2 * k_
+    if self.use_centroids:
+      self.centroids = np.zeros((2*k_, X.shape[1]))
+      for i in range(k_):
+        u_pos = 2*i
+        v_pos = u_pos + 1
+        self.centroids[u_pos] = X[self.u_centers[i]]
+        self.centroids[v_pos] = X[self.v_centers[i]]
+      self.n_per_cluster = np.ones(2 * k_)
 
   def predict(self, X):
     labels = []
@@ -89,7 +99,14 @@ class PRClustering():
       elif i in self.v_centers:
         labels.append(self.v_centers.index(i) + len(self.u_centers))
       else:
-        labels.append(self.find_label(X, X[i], dists_uv))
+        cluster = self.find_label(X, X[i], dists_uv)
+        labels.append(cluster)
+        self.centroids[cluster] = \
+          (self.centroids[cluster] * \
+            self.n_per_cluster[cluster] + \
+              X[i]) / \
+          (self.n_per_cluster[cluster] + 1)
+        self.n_per_cluster[cluster] += 1
     return np.array(labels, dtype=int)
 
   def find_label(self, X, v, dists_uv):
@@ -104,16 +121,22 @@ class PRClustering():
       min_dist_p = min(dists_p)
       if (min_dist_p < dists_uv[i]) and (min_dist_p < min_dist):
         if self.min_dist:
-          min_dist = min_dist_p
+          if self.centroids:
+            dists_p = [self.dist_func(v, self.centroids[i]),
+                       self.dist_func(v, self.centroids[i+1])]
         label = 2 * i
         if dists_p[1] < dists_p[0]:
           label += 1
     if label is None:
       label = 2 * n_u
       if not self.d_cluster:
-        dists_p = [self.dist_func(v, X[self.u_centers[i+1]]),
-                   self.dist_func(v, X[self.v_centers[i+1]])]
-        if dists_p[1] < dists_p[0]:
+        if self.centroids:
+          dist_u = self.dist_func(v, self.centroids[n_u])
+          dist_v = self.dist_func(v, self.centroids[n_u+1])
+        else:
+          dist_u = self.dist_func(v, X[self.u_centers[i+1]])
+          dist_v = self.dist_func(v, X[self.v_centers[i+1]])
+        if dist_v < dist_u:
           label += 1
     return label
 

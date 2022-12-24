@@ -34,7 +34,9 @@ class PRClustering():
     dists_sum = dists.sum(axis=1)
     best_idx = np.argmax(dists_sum)
     self.dists_to_centers = dists[best_idx].reshape(1,-1)
-    return to_test[best_idx]
+    best = to_test[best_idx]
+    self.dists_to_centers[:,best] = 0
+    return best
   
   def find_distant_neighbor(self, X, u=None, i=None):
     if not self.u_centers:
@@ -43,10 +45,17 @@ class PRClustering():
       dists_to_center = self.dists_to_centers.sum(axis=0)
       if u is not None:
         factor = self.n_clusters - 2*i + 2
-        dists_to_center += (euclidean_distances(X[u].reshape(1, -1), X) * factor).flatten()
+        ed = (euclidean_distances(X[u].reshape(1, -1), X) * factor).flatten()
+        ed[self.u_centers + self.v_centers + [u]] = 0
+        dists_to_center += ed
       best = dists_to_center.argmax()
     dists = euclidean_distances(X[best].reshape(1, -1), X)
     self.dists_to_centers = np.concatenate((self.dists_to_centers, dists))
+    self.dists_to_centers[:,best] = 0
+    for i in self.u_centers + self.v_centers:
+      self.dists_to_centers[:,i] = 0
+    if u:
+      self.dists_to_centers[:,u] = 0
     return best
   
   def fit(self, X, y=None):
@@ -64,8 +73,9 @@ class PRClustering():
         v = self.find_distant_neighbor(X, u, i)
         self.u_centers.append(u)
         self.v_centers.append(v)
-    assert len(self.u_centers) == self.n_clusters // 2
-    assert len(self.v_centers) == self.n_clusters // 2
+    assert len(self.u_centers) == k_
+    assert len(self.v_centers) == k_
+    assert len(np.unique(self.u_centers + self.v_centers)) == 2 * k_
 
   def predict(self, X):
     labels = []

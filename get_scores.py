@@ -6,12 +6,15 @@ from sklearn.metrics.pairwise import euclidean_distances
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
+import pandas as pd
+
+disable_tqdm = False
 
 def get_all_dists(data, labels):
   unique_labels = np.unique(labels)
   n_labels = len(unique_labels)
   ans = np.zeros((n_labels, n_labels))
-  for i in tqdm(range(n_labels)):
+  for i in tqdm(range(n_labels), disable=disable_tqdm):
     for j in range(i, n_labels):
       if i != j:
         ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
@@ -29,6 +32,20 @@ def get_graph_edges(dists):
   g = nx.from_numpy_array(dists)
   return g.edges.data()
 
+def get_kmeans_losses(data, labels):
+  centers = pd.DataFrame(data).groupby(labels).mean()
+  dists = [np.square(euclidean_distances(data[labels==i],
+                                        centers.iloc[i]\
+                                          .values\
+                                            .reshape(1,-1))
+                    )\
+                .sum()
+          for i in range(len(centers))]
+  return np.array(dists)
+
+def get_cluster_std(labels):
+  return np.unique(labels, return_counts=True)[1].std()
+
 def get_scores(data, labels, true_labels=None):
   # vector_dists = euclidean_distances(data)
   dists = get_all_dists(data, labels)
@@ -41,7 +58,9 @@ def get_scores(data, labels, true_labels=None):
             'avg_dist': sum(graph_weights) / len(graph_weights),
             'sil_score': silhouette_score(data, labels),
             'ch_score': calinski_harabasz_score(data, labels),
-            'db_score': davies_bouldin_score(data, labels)}
+            'db_score': davies_bouldin_score(data, labels),
+            'kmeans_loss': get_kmeans_losses(data, labels).sum(),
+            'cluster_std': get_cluster_std(labels)}
   if true_labels is not None:
     scores['nmi'] = nmi(true_labels, labels)
   return scores

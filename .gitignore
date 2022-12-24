@@ -1,8 +1,7 @@
 /__pycache__
 /labels*
-/results
-retrieve_labels.ipynb
-test.ipynb
+/results*
+*.ipynb
 results*.csv
 .DS_Store
 /logs

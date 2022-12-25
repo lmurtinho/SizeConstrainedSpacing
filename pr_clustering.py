@@ -79,13 +79,16 @@ class PRClustering():
     assert len(self.v_centers) == k_
     assert len(np.unique(self.u_centers + self.v_centers)) == 2 * k_
     if self.use_centroids:
-      self.centroids = np.zeros((2*k_, X.shape[1]))
+      self.centroids = np.zeros((self.n_clusters, X.shape[1]))
+      self.n_per_cluster = np.zeros(self.n_clusters)
       for i in range(k_):
         u_pos = 2*i
         v_pos = u_pos + 1
         self.centroids[u_pos] = X[self.u_centers[i]]
         self.centroids[v_pos] = X[self.v_centers[i]]
-      self.n_per_cluster = np.ones(2 * k_)
+        self.n_per_cluster[u_pos] = 1
+        self.n_per_cluster[v_pos] = 1
+
 
   def predict(self, X):
     labels = []
@@ -101,12 +104,13 @@ class PRClustering():
       else:
         cluster = self.find_label(X, X[i], dists_uv)
         labels.append(cluster)
-        self.centroids[cluster] = \
-          (self.centroids[cluster] * \
-            self.n_per_cluster[cluster] + \
-              X[i]) / \
-          (self.n_per_cluster[cluster] + 1)
-        self.n_per_cluster[cluster] += 1
+        if self.use_centroids:
+          self.centroids[cluster] = \
+            (self.centroids[cluster] * \
+              self.n_per_cluster[cluster] + \
+                X[i]) / \
+            (self.n_per_cluster[cluster] + 1)
+          self.n_per_cluster[cluster] += 1
     return np.array(labels, dtype=int)
 
   def find_label(self, X, v, dists_uv):
@@ -121,7 +125,7 @@ class PRClustering():
       min_dist_p = min(dists_p)
       if (min_dist_p < dists_uv[i]) and (min_dist_p < min_dist):
         if self.min_dist:
-          if self.centroids:
+          if self.use_centroids:
             dists_p = [self.dist_func(v, self.centroids[i]),
                        self.dist_func(v, self.centroids[i+1])]
         label = 2 * i
@@ -130,7 +134,7 @@ class PRClustering():
     if label is None:
       label = 2 * n_u
       if not self.d_cluster:
-        if self.centroids:
+        if self.use_centroids:
           dist_u = self.dist_func(v, self.centroids[n_u])
           dist_v = self.dist_func(v, self.centroids[n_u+1])
         else:

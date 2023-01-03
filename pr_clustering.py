@@ -2,11 +2,14 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics.pairwise import euclidean_distances
 
+def euclid_dist(x, y):
+  return np.linalg.norm(x-y)
+
 class PRClustering():
 
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
-               dist_func=lambda x, y: np.linalg.norm(x - y),
+               dist_func=euclid_dist,
                min_dist = True,
                use_centroids = False,
                random_state=None):
@@ -111,7 +114,9 @@ class PRClustering():
                 X[i]) / \
             (self.n_per_cluster[cluster] + 1)
           self.n_per_cluster[cluster] += 1
-    return np.array(labels, dtype=int)
+    labels = np.array(labels, dtype=int)
+    self.labels_ = labels
+    return labels
 
   def find_label(self, X, v, dists_uv):
     min_dist = np.inf

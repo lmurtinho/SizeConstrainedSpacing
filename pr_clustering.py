@@ -35,17 +35,18 @@ class PRClustering():
     else:
         test_n = 1
     to_test = self.rng.choice(n, test_n, replace=False)
-    dists = euclidean_distances(X[to_test], X)
-    dists_sum = dists.sum(axis=1)
-    best_idx = np.argmax(dists_sum)
-    self.dists_to_centers = dists[best_idx].reshape(1,-1)
-    best = to_test[best_idx]
+    dists = euclidean_distances(X[to_test])
+    idx_a, idx_b = dists.argmax() % test_n, dists.argmax() // test_n
+    a, b = to_test[idx_a], to_test[idx_b]
+    dists = euclidean_distances(X[[a, b]], X)
+    best = dists.argmax() % test_n
+    self.dists_to_centers = euclidean_distances(X[best].reshape(1, -1), X)
     self.dists_to_centers[:,best] = 0
     return best
   
   def find_distant_neighbor(self, X, u=None, i=None):
     if not self.u_centers:
-      best = self.dists_to_centers.argmax()
+      dists_to_center = self.dists_to_centers#.argmax()
     else:
       dists_to_center = self.dists_to_centers.sum(axis=0)
       if u is not None:
@@ -53,7 +54,7 @@ class PRClustering():
         ed = (euclidean_distances(X[u].reshape(1, -1), X) * factor).flatten()
         ed[self.u_centers + self.v_centers + [u]] = 0
         dists_to_center += ed
-      best = dists_to_center.argmax()
+    best = dists_to_center.argmax()
     dists = euclidean_distances(X[best].reshape(1, -1), X)
     self.dists_to_centers = np.concatenate((self.dists_to_centers, dists))
     self.dists_to_centers[:,best] = 0

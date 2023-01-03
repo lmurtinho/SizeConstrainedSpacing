@@ -10,6 +10,14 @@ import pandas as pd
 
 disable_tqdm = False
 
+def get_data(data_path, filename):
+    _, k, _ = filename.split('_')
+    df = pd.read_csv(f'{data_path}/{filename}', header=None)
+    data = np.array([j for j in df[0].\
+                apply(lambda x: np.array([float(i) for i in x.split()]))\
+                    .values])
+    return data, int(k)
+
 def get_all_dists(data, labels):
   unique_labels = np.unique(labels)
   n_labels = len(unique_labels)

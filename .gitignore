@@ -5,3 +5,6 @@
 results*.csv
 .DS_Store
 /logs
+/csv
+/models
+*.pkl

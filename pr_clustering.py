@@ -10,7 +10,7 @@ class PRClustering():
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
                dist_func=euclid_dist,
-               min_dist = True,
+               use_min_dist = True,
                use_centroids = False,
                random_state=None):
     self.n_clusters = n_clusters
@@ -19,7 +19,7 @@ class PRClustering():
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
-    self.min_dist = min_dist if not use_centroids else True
+    self.use_min_dist = use_min_dist
     self.use_centroids = use_centroids
   
   def find_first_point(self, X):
@@ -126,14 +126,22 @@ class PRClustering():
     if not self.d_cluster:
       n_u -= 1
     for i in range(n_u):
+      # check if condition is satisfied
       dists_p = [self.dist_func(v, X[self.u_centers[i]]), 
-                 self.dist_func(v, X[self.v_centers[i]])]
+                self.dist_func(v, X[self.v_centers[i]])]
       min_dist_p = min(dists_p)
       if (min_dist_p < dists_uv[i]) and (min_dist_p < min_dist):
-        if self.min_dist:
-          if self.use_centroids:
-            dists_p = [self.dist_func(v, self.centroids[i]),
-                       self.dist_func(v, self.centroids[i+1])]
+        # use centroids only to assign to a centroid,
+        # not to check if condition is satisfied
+        if self.use_centroids:
+          dists_p = [self.dist_func(v, self.centroids[i]),
+                    self.dist_func(v, self.centroids[i+1])]
+          min_dist_p = min(dists_p)
+        # if self.use_min_dist is true, update min_dist;
+        # otherwise, assign to the closest centroid
+        # whenever the condition is satisfied
+        if self.use_min_dist:
+          min_dist = min_dist_p
         label = 2 * i
         if dists_p[1] < dists_p[0]:
           label += 1

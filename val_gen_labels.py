@@ -23,7 +23,7 @@ else:
 print(datasets)
 
 alpha = valohai.parameters('alpha').value
-min_dist = valohai.parameters('min_dist').value
+use_min_dist = valohai.parameters('use_min_dist').value
 use_centroids = valohai.parameters('use_centroids').value
 
 seeds = range(1, 11)
@@ -78,12 +78,12 @@ for dataset in datasets:
         save_labels(df_labels, name)
     if 'pr' in algos:
         args['alpha'] = alpha
-        args['min_dist'] = min_dist
+        args['use_min_dist'] = use_min_dist
         args['use_centroids'] = use_centroids
         labels = retrieve_labels(data, PRClustering, dataset, 'pr', args, seeds)
         df_labels = pd.DataFrame(labels).T
         df_labels.columns = range(1,11)
-        name = f'{dataset}_{alpha}_{min_dist}_{use_centroids}.csv'
+        name = f'{dataset}_{alpha}_{use_min_dist}_{use_centroids}.csv'
         save_labels(df_labels, name)
 
     # labels = retrieve_labels_km(data, k, seeds)

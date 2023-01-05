@@ -25,6 +25,15 @@ print(datasets)
 alpha = valohai.parameters('alpha').value
 use_min_dist = valohai.parameters('use_min_dist').value
 use_centroids = valohai.parameters('use_centroids').value
+n_init = valohai.parameters('n_init').value
+
+if n_init.isidigt():
+    n_init = int(n_init)
+else:
+    try:
+        n_init = float(n_init)
+    except:
+        pass
 
 seeds = range(1, 11)
 
@@ -80,6 +89,7 @@ for dataset in datasets:
         args['alpha'] = alpha
         args['use_min_dist'] = use_min_dist
         args['use_centroids'] = use_centroids
+        args['n_init'] = n_init
         labels = retrieve_labels(data, PRClustering, dataset, 'pr', args, seeds)
         df_labels = pd.DataFrame(labels).T
         df_labels.columns = range(1,11)

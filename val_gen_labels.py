@@ -27,7 +27,7 @@ use_min_dist = valohai.parameters('use_min_dist').value
 use_centroids = valohai.parameters('use_centroids').value
 n_init = valohai.parameters('n_init').value
 
-if n_init.isidigt():
+if n_init.isdigit():
     n_init = int(n_init)
 else:
     try:

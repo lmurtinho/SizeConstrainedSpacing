@@ -158,6 +158,11 @@ class PRClustering():
           label += 1
     return label
 
+  def check_hyperplan(self, X, u, v, y):
+    z = X[v] - X[u]
+    proj = np.dot(X[y], X[z]) / np.dot(X[z], X[z])
+    return proj <= self.alpha
+
   def fit_predict(self, X, y=None):
     self.fit(X)
     return self.predict(X)

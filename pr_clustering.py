@@ -119,49 +119,74 @@ class PRClustering():
     self.labels_ = labels
     return labels
 
-  def find_label(self, X, v, dists_uv):
+  def find_label(self, X, x, dists_uv):
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
     if not self.d_cluster:
       n_u -= 1
     for i in range(n_u):
-      # check if condition is satisfied
-      dists_p = [self.dist_func(v, X[self.u_centers[i]]), 
-                self.dist_func(v, X[self.v_centers[i]])]
-      min_dist_p = min(dists_p)
-      if (min_dist_p < dists_uv[i]) and (min_dist_p < min_dist):
-        # use centroids only to assign to a centroid,
-        # not to check if condition is satisfied
-        if self.use_centroids:
-          dists_p = [self.dist_func(v, self.centroids[i]),
-                    self.dist_func(v, self.centroids[i+1])]
-          min_dist_p = min(dists_p)
-        # if self.use_min_dist is true, update min_dist;
-        # otherwise, assign to the closest centroid
-        # whenever the condition is satisfied
-        if self.use_min_dist:
-          min_dist = min_dist_p
-        label = 2 * i
-        if dists_p[1] < dists_p[0]:
-          label += 1
+      u = X[self.u_centers[i]]
+      v = X[self.v_centers[i]]
+      # check if hyperplane condition is satisfied for u
+      # and if ball condition is satisfied for v
+      u_ok = self.check_hyperplane(x, u, v)
+      # u_ok = self.check_ball(x, u, dists_uv[i])
+      v_ok = self.check_ball(x, v, dists_uv[i])
+      # v_ok = self.check_hyperplane(x, v, u)
+      # both conditions cannot be satisfied at the same time!
+      assert not(all([u_ok, v_ok]))
+      if v_ok:
+        label, min_dist = self.assign_to_cluster(x, v,
+                                                 min_dist, i,
+                                                 label, True)
+      elif u_ok:
+        label, min_dist = self.assign_to_cluster(x, u,
+                                                 min_dist, i,
+                                                 label, False)
     if label is None:
       label = 2 * n_u
       if not self.d_cluster:
         if self.use_centroids:
-          dist_u = self.dist_func(v, self.centroids[n_u])
-          dist_v = self.dist_func(v, self.centroids[n_u+1])
+          dist_u = self.dist_func(x, self.centroids[n_u])
+          dist_v = self.dist_func(x, self.centroids[n_u+1])
         else:
-          dist_u = self.dist_func(v, X[self.u_centers[i+1]])
-          dist_v = self.dist_func(v, X[self.v_centers[i+1]])
+          dist_u = self.dist_func(x, X[self.u_centers[i+1]])
+          dist_v = self.dist_func(x, X[self.v_centers[i+1]])
         if dist_v < dist_u:
           label += 1
     return label
 
-  def check_hyperplan(self, X, u, v, y):
-    z = X[v] - X[u]
-    proj = np.dot(X[y], X[z]) / np.dot(X[z], X[z])
+  def assign_to_cluster(self, x, u, min_dist, i, label, is_v=False):
+    """
+    - Checks the distance between x and u.
+    - If smaller than min_dist, assigns x to label associated with u.
+    - Label will be 2*i if u is a u_center, 2*i+1 if u is a v_center.
+    - If points are assigned to the closest centroids, updates min_dist.
+      - If centroids are being used, min_dist updated to the distance between
+        x and the centroid of the cluster.
+    """
+    dist_v = self.dist_func(x, u)
+    if dist_v < min_dist:
+      label = 2*i + (1 if is_v else 0)
+      if self.use_min_dist:
+        if self.use_centroids:
+          min_dist = self.dist_func(x, self.centroids[label])
+        else:
+          min_dist = dist_v
+    return label, min_dist
+
+  def check_hyperplane(self, x, u, v):
+    z = v - u
+    x_ = x - u
+    proj = abs(np.dot(x_, z) / np.dot(z, z))
+    # print(f'proj: {proj:.2f}, alpha: {self.alpha:.2f}')
     return proj <= self.alpha
+
+  def check_ball(self, x, u, dist_uv):
+    dist_ux = self.dist_func(x, u)
+    # print(f'dist_ux: {dist_ux:.2f}, dist_uv: {dist_uv:.2f}')
+    return dist_ux <= dist_uv
 
   def fit_predict(self, X, y=None):
     self.fit(X)

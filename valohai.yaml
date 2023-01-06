@@ -54,7 +54,7 @@
     command:
       - pip install --upgrade pip
       - pip install -r requirements.txt
-      - python scores_from_models.py {parameters}
+      - python val_scores_from_models.py {parameters}
     image: python
     inputs:
       - name: models_path

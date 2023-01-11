@@ -96,9 +96,11 @@ class PRClustering():
 
   def predict(self, X):
     labels = []
-    dists_uv = np.array([self.dist_func(X[self.u_centers[i]],
-                                        X[self.v_centers[i]])
-                         for i in range(len(self.u_centers))])
+    if self.d_cluster:
+      centers = self.u_centers + self.v_centers
+    else:
+      centers = self.u_centers[:-1] + self.v_centers[:-1]
+    dists_uv = euclidean_distances(X[centers])
     dists_uv *= self.alpha
     for i in tqdm(range(len(X))):
       if i in self.u_centers:
@@ -123,36 +125,34 @@ class PRClustering():
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
+
     if not self.d_cluster:
+      centers = self.u_centers[:-1] + self.v_centers[:-1]
       n_u -= 1
-    for i in range(n_u):
-      u = X[self.u_centers[i]]
-      v = X[self.v_centers[i]]
-      # check if hyperplane condition is satisfied for u
-      # and if ball condition is satisfied for v
-      u_ok = self.check_hyperplane(x, u, v)
-      # u_ok = self.check_ball(x, u, dists_uv[i])
-      v_ok = self.check_ball(x, v, dists_uv[i])
-      # v_ok = self.check_hyperplane(x, v, u)
-      # both conditions cannot be satisfied at the same time!
-      assert not(all([u_ok, v_ok]))
-      if v_ok:
-        label, min_dist = self.assign_to_cluster(x, v,
-                                                 min_dist, i,
-                                                 label, True)
-      elif u_ok:
-        label, min_dist = self.assign_to_cluster(x, u,
-                                                 min_dist, i,
-                                                 label, False)
-    if label is None:
+    else:
+      centers = self.u_centers + self.v_centers
+
+    dists_x = euclidean_distances(X[centers],
+                                     x.reshape(1, -1)).flatten()
+    idx = dists_x.argmin()
+    min_dist = dists_x.min()
+    dists_x -= min_dist
+    one_min = np.isclose(dists_x, 0).sum()
+    all_distant = np.all(dists_x >= dists_uv[idx])
+    if one_min and all_distant:
+      if idx < n_u:
+        label = 2 * idx
+      else:
+        label = 2 * (idx % n_u) + 1
+    else:
       label = 2 * n_u
       if not self.d_cluster:
         if self.use_centroids:
           dist_u = self.dist_func(x, self.centroids[n_u])
           dist_v = self.dist_func(x, self.centroids[n_u+1])
         else:
-          dist_u = self.dist_func(x, X[self.u_centers[i+1]])
-          dist_v = self.dist_func(x, X[self.v_centers[i+1]])
+          dist_u = self.dist_func(x, X[self.u_centers[-1]])
+          dist_v = self.dist_func(x, X[self.v_centers[-1]])
         if dist_v < dist_u:
           label += 1
     return label

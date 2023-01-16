@@ -14,7 +14,7 @@ class PRClustering():
                use_centroids = False,
                random_state=None):
     self.n_clusters = n_clusters
-    self.d_cluster = bool(n_clusters % 2)
+    self.n_odd = bool(n_clusters % 2)
     self.alpha = alpha
     self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
@@ -70,7 +70,7 @@ class PRClustering():
     self.u_centers = []
     self.v_centers = []
 
-    k_ = self.n_clusters // 2
+    k_ = (self.n_clusters - 1) // 2
     for i in tqdm(range(k_)):
         if len(self.u_centers) == 0:
            u = self.find_first_point(X)
@@ -79,9 +79,14 @@ class PRClustering():
         v = self.find_distant_neighbor(X, u, i)
         self.u_centers.append(u)
         self.v_centers.append(v)
-    assert len(self.u_centers) == k_
+    if not self.n_odd:
+      u = self.find_distant_neighbor(X)
+      self.u_centers.append(u)
+    if self.n_odd:
+      assert len(self.u_centers) == k_
+    else:
+      assert len(self.u_centers) == k_ + 1
     assert len(self.v_centers) == k_
-    assert len(np.unique(self.u_centers + self.v_centers)) == 2 * k_
     if self.use_centroids:
       self.centroids = np.zeros((self.n_clusters, X.shape[1]))
       self.n_per_cluster = np.zeros(self.n_clusters)
@@ -96,10 +101,7 @@ class PRClustering():
 
   def predict(self, X):
     labels = []
-    if self.d_cluster:
-      centers = self.u_centers + self.v_centers
-    else:
-      centers = self.u_centers[:-1] + self.v_centers[:-1]
+    centers = self.u_centers + self.v_centers
     dists_uv = euclidean_distances(X[centers])
     dists_uv *= self.alpha
     for i in tqdm(range(len(X))):
@@ -108,7 +110,7 @@ class PRClustering():
       elif i in self.v_centers:
         labels.append(self.v_centers.index(i) + len(self.u_centers))
       else:
-        cluster = self.find_label(X, X[i], dists_uv)
+        cluster = self.find_label(X, X[i], centers, dists_uv)
         labels.append(cluster)
         if self.use_centroids:
           self.centroids[cluster] = \
@@ -119,18 +121,14 @@ class PRClustering():
           self.n_per_cluster[cluster] += 1
     labels = np.array(labels, dtype=int)
     self.labels_ = labels
+    assert len(np.unique(labels)) == self.n_clusters
     return labels
 
-  def find_label(self, X, x, dists_uv):
+  def find_label(self, X, x, centers, dists_uv):
     min_dist = np.inf
     label = None
     n_u = len(self.u_centers)
-
-    if not self.d_cluster:
-      centers = self.u_centers[:-1] + self.v_centers[:-1]
-      n_u -= 1
-    else:
-      centers = self.u_centers + self.v_centers
+    n_v = len(self.v_centers)
 
     dists_x = euclidean_distances(X[centers],
                                      x.reshape(1, -1)).flatten()
@@ -145,48 +143,8 @@ class PRClustering():
       else:
         label = 2 * (idx % n_u) + 1
     else:
-      label = 2 * n_u
-      if not self.d_cluster:
-        if self.use_centroids:
-          dist_u = self.dist_func(x, self.centroids[n_u])
-          dist_v = self.dist_func(x, self.centroids[n_u+1])
-        else:
-          dist_u = self.dist_func(x, X[self.u_centers[-1]])
-          dist_v = self.dist_func(x, X[self.v_centers[-1]])
-        if dist_v < dist_u:
-          label += 1
+      label = n_u + n_v
     return label
-
-  def assign_to_cluster(self, x, u, min_dist, i, label, is_v=False):
-    """
-    - Checks the distance between x and u.
-    - If smaller than min_dist, assigns x to label associated with u.
-    - Label will be 2*i if u is a u_center, 2*i+1 if u is a v_center.
-    - If points are assigned to the closest centroids, updates min_dist.
-      - If centroids are being used, min_dist updated to the distance between
-        x and the centroid of the cluster.
-    """
-    dist_v = self.dist_func(x, u)
-    if dist_v < min_dist:
-      label = 2*i + (1 if is_v else 0)
-      if self.use_min_dist:
-        if self.use_centroids:
-          min_dist = self.dist_func(x, self.centroids[label])
-        else:
-          min_dist = dist_v
-    return label, min_dist
-
-  def check_hyperplane(self, x, u, v):
-    z = v - u
-    x_ = x - u
-    proj = abs(np.dot(x_, z) / np.dot(z, z))
-    # print(f'proj: {proj:.2f}, alpha: {self.alpha:.2f}')
-    return proj <= self.alpha
-
-  def check_ball(self, x, u, dist_uv):
-    dist_ux = self.dist_func(x, u)
-    # print(f'dist_ux: {dist_ux:.2f}, dist_uv: {dist_uv:.2f}')
-    return dist_ux <= dist_uv
 
   def fit_predict(self, X, y=None):
     self.fit(X)

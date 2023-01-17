@@ -2,25 +2,16 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics.pairwise import euclidean_distances
 
-def euclid_dist(x, y):
-  return np.linalg.norm(x-y)
-
 class PRClustering():
 
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
-               dist_func=euclid_dist,
-               use_min_dist = True,
-               use_centroids = False,
                random_state=None):
     self.n_clusters = n_clusters
     self.n_odd = bool(n_clusters % 2)
     self.alpha = alpha
-    self.dist_func = dist_func
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
-    self.use_min_dist = use_min_dist
-    self.use_centroids = use_centroids
   
   def find_first_point(self, X):
     n = len(X)
@@ -87,17 +78,6 @@ class PRClustering():
     else:
       assert len(self.u_centers) == k_ + 1
     assert len(self.v_centers) == k_
-    if self.use_centroids:
-      self.centroids = np.zeros((self.n_clusters, X.shape[1]))
-      self.n_per_cluster = np.zeros(self.n_clusters)
-      for i in range(k_):
-        u_pos = 2*i
-        v_pos = u_pos + 1
-        self.centroids[u_pos] = X[self.u_centers[i]]
-        self.centroids[v_pos] = X[self.v_centers[i]]
-        self.n_per_cluster[u_pos] = 1
-        self.n_per_cluster[v_pos] = 1
-
 
   def predict(self, X):
     labels = []
@@ -112,13 +92,6 @@ class PRClustering():
       else:
         cluster = self.find_label(X, X[i], centers, dists_uv)
         labels.append(cluster)
-        if self.use_centroids:
-          self.centroids[cluster] = \
-            (self.centroids[cluster] * \
-              self.n_per_cluster[cluster] + \
-                X[i]) / \
-            (self.n_per_cluster[cluster] + 1)
-          self.n_per_cluster[cluster] += 1
     labels = np.array(labels, dtype=int)
     self.labels_ = labels
     assert len(np.unique(labels)) == self.n_clusters

@@ -15,12 +15,6 @@
       - name: alpha
         type: float
         default: 0.25
-      - name: use_min_dist
-        type: flag
-        default: True
-      - name: use_centroids
-        type: flag
-        default: False
       - name: n_init
         type: string
         default: 'square'

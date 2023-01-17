@@ -23,8 +23,6 @@ else:
 print(datasets)
 
 alpha = valohai.parameters('alpha').value
-use_min_dist = valohai.parameters('use_min_dist').value
-use_centroids = valohai.parameters('use_centroids').value
 n_init = valohai.parameters('n_init').value
 
 if n_init.isdigit():
@@ -87,22 +85,9 @@ for dataset in datasets:
         save_labels(df_labels, name)
     if 'pr' in algos:
         args['alpha'] = alpha
-        args['use_min_dist'] = use_min_dist
-        args['use_centroids'] = use_centroids
         args['n_init'] = n_init
         labels = retrieve_labels(data, PRClustering, dataset, 'pr', args, seeds)
         df_labels = pd.DataFrame(labels).T
         df_labels.columns = range(1,11)
-        name = f'{dataset}_{alpha}_{use_min_dist}_{use_centroids}.csv'
+        name = f'{dataset}_{alpha}.csv'
         save_labels(df_labels, name)
-
-    # labels = retrieve_labels_km(data, k, seeds)
-    # df_labels = pd.DataFrame(labels).T
-    # df_labels.columns = range(1,11)
-    # name = f'{dataset}_km.csv'
-    # save_labels(df_labels, name)
-
-    # labels = retrieve_labels_sl(data, k)
-    # df_labels = pd.DataFrame(labels).T
-    # name = f'{dataset}_sl.csv'
-    # save_labels(df_labels, name)

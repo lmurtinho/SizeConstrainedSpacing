@@ -29,11 +29,6 @@ models_path = f'{VH_INPUTS_DIR}/models_path'
 dataset = valohai.parameters('dataset').value
 algo = valohai.parameters('algo').value
 
-# data_path = '/home/ubuntu/PRClustering/csv'
-# models_path = '/home/ubuntu/PRClustering/models'
-# dataset = '["iris"]'
-# algo = 'all'
-
 if dataset == 'all':
     datasets = [i.split('_')[0] for i in os.listdir(data_path)]
 else:
@@ -61,5 +56,4 @@ for d in datasets:
                 scores = pd.DataFrame(scores.tolist())
                 fdf = pd.concat([dfm, scores], axis=1)
                 scores_path = valohai.outputs('scores').path(f'{d}_{a}.pkl')
-                # scores_path = f'/home/ubuntu/PRClustering/nscores/{d}_{a}.pkl'
                 joblib.dump(fdf, scores_path)

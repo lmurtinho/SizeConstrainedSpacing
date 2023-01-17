@@ -42,7 +42,7 @@ class PRClustering():
   
   def find_distant_neighbor(self, X, u=None, i=None):
     if not self.u_centers:
-      dists_to_center = self.dists_to_centers#.argmax()
+      dists_to_center = self.dists_to_centers
     else:
       dists_to_center = self.dists_to_centers.sum(axis=0)
       if u is not None:
@@ -83,6 +83,7 @@ class PRClustering():
     else:
       assert len(self.u_centers) == k_ + 1
     assert len(self.v_centers) == k_
+    del self.dists_to_centers
 
   def predict(self, X):
     labels = []

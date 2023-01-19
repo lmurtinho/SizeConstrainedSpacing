@@ -11,7 +11,7 @@
     parameters:
       - name: dataset
         type: string
-        default: '["iris","anuran","avila","digits","collins","pendigits","letter","mice","vowel"]'
+        default: '["anuran","avila","digits","collins","pendigits","letter","mice","vowel"]'
       - name: alpha
         type: float
         default: 0.25

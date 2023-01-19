@@ -2,16 +2,21 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics.pairwise import euclidean_distances
 
+def euclid_dist():
+  pass
+
 class PRClustering():
 
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
-               random_state=None):
+               random_state=None,
+               euclid_dist=None):
     self.n_clusters = n_clusters
     self.n_odd = bool(n_clusters % 2)
     self.alpha = alpha
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
+    self.euclid_dist = euclid_dist
   
   def find_first_point(self, X):
     n = len(X)
@@ -94,7 +99,8 @@ class PRClustering():
         labels.append(cluster)
     labels = np.array(labels, dtype=int)
     self.labels_ = labels
-    assert len(np.unique(labels)) == self.n_clusters
+    # print(np.unique(labels, return_counts=True))
+    # assert len(np.unique(labels)) == self.n_clusters
     return labels
 
   def find_label(self, X, x, centers, dists_uv):

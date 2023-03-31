@@ -35,7 +35,7 @@ class PRClustering():
     idx_a, idx_b = dists.argmax() % test_n, dists.argmax() // test_n
     a, b = to_test[idx_a], to_test[idx_b]
     dists = euclidean_distances(X[[a, b]], X)
-    best = dists.argmax() % test_n
+    best = dists.argmax() % n
     self.dists_to_centers = euclidean_distances(X[best].reshape(1, -1), X)
     self.dists_to_centers[:,best] = 0
     return best
@@ -100,8 +100,6 @@ class PRClustering():
         labels.append(cluster)
     labels = np.array(labels, dtype=int)
     self.labels_ = labels
-    # print(np.unique(labels, return_counts=True))
-    # assert len(np.unique(labels)) == self.n_clusters
     return labels
 
   def find_label(self, X, x, centers, dists_uv):

@@ -105,6 +105,7 @@ class PRClustering():
     labels = np.array(labels, dtype=int)
     closest_centroids = np.array(closest_centroids, dtype=int)
     self.labels_ = labels
+    self.closest_centroids_ = closest_centroids
     return labels
 
   def find_label(self, X, x, centers, dists_uv):

@@ -100,7 +100,36 @@ class PRClustering():
     closest_centroids = np.array(closest_centroids, dtype=int)
     self.labels_ = labels
     self.closest_centroids_ = closest_centroids
-    return labels
+    if self.avoid_small_clusters:
+      self.adjust_clusters(X)
+    return self.labels_
+
+  def adjust_clusters(self, X):
+    clusters_order = np.argsort(np.bincount(self.labels_)[:-1])
+    dists = euclidean_distances(X, X[self.centers])
+    dists_uv = euclidean_distances(X[self.centers])
+    dists_uv *= self.alpha
+
+    for i in range(len(clusters_order)):
+      c = clusters_order[i]
+      center = self.centers[c]
+      self.labels_[center] = c
+      check_against = clusters_order[:i]
+      # candidates for changing label have not been assigned to
+      # their closest centroid
+      candidates = np.where((self.closest_centroids_ == c) &
+                            (self.labels_ != c))[0].astype(int)
+      if len(candidates):
+        if not len(check_against):
+          check = np.ones(len(candidates), dtype=bool)
+        else:
+          dists_check = dists[candidates][:,check_against]
+          dists_uv_check = dists_uv[i, check_against]
+          min_vals = dists[candidates, i].reshape(-1, 1)
+
+          check = dists_check - min_vals >= dists_uv_check
+          check = check.all(axis=1)
+        self.labels_[candidates[check]] = c
 
   def find_label(self, X, x, dists_uv):
     min_dist = np.inf

@@ -24,6 +24,9 @@
       - name: algos
         type: string
         default: '["pr"]'
+      - name: avoid_small_clusters
+        type: flag
+        default: true
 - step:
     name: score-labels
     command:

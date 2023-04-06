@@ -87,6 +87,7 @@ class PRClustering():
 
   def predict(self, X):
     labels = []
+    closest_centroids = []
     centers = self.u_centers + self.v_centers
     dists_uv = euclidean_distances(X[centers])
     dists_uv *= self.alpha
@@ -96,8 +97,9 @@ class PRClustering():
       elif i in self.v_centers:
         labels.append(self.v_centers.index(i) + len(self.u_centers))
       else:
-        cluster = self.find_label(X, X[i], centers, dists_uv)
+        cluster, closest = self.find_label(X, X[i], centers, dists_uv)
         labels.append(cluster)
+        closest_centroids.append(closest)
     labels = np.array(labels, dtype=int)
     self.labels_ = labels
     return labels
@@ -111,18 +113,24 @@ class PRClustering():
     dists_x = euclidean_distances(X[centers],
                                      x.reshape(1, -1)).flatten()
     idx = dists_x.argmin()
+
+    # find closest cluster
+    if idx < n_u:
+      closest = 2 * idx
+    else:
+      closest = 2 * (idx % n_u) + 1
+
+    # check if x should go to closest cluster or to last cluster
     min_dist = dists_x.min()
     dists_x -= min_dist
     one_min = np.isclose(dists_x, 0).sum()
     all_distant = np.all(dists_x >= dists_uv[idx])
     if one_min and all_distant:
-      if idx < n_u:
-        label = 2 * idx
-      else:
-        label = 2 * (idx % n_u) + 1
+      label = closest
     else:
       label = n_u + n_v
-    return label
+
+    return label, closest
 
   def fit_predict(self, X, y=None):
     self.fit(X)

@@ -24,6 +24,7 @@ print(datasets)
 
 alpha = valohai.parameters('alpha').value
 n_init = valohai.parameters('n_init').value
+avoid_small_clusters = valohai.parameters('avoid_small_clusters').value
 
 if n_init.isdigit():
     n_init = int(n_init)
@@ -86,6 +87,7 @@ for dataset in datasets:
     if 'pr' in algos:
         args['alpha'] = alpha
         args['n_init'] = n_init
+        args['avoid_small_clusters'] = avoid_small_clusters
         labels = retrieve_labels(data, PRClustering, dataset, 'pr', args, seeds)
         df_labels = pd.DataFrame(labels).T
         df_labels.columns = range(1,11)

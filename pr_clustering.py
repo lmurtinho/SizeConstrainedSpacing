@@ -10,13 +10,15 @@ class PRClustering():
   def __init__(self, n_clusters, alpha=0.25, 
                n_init = 'square',
                random_state=None,
-               euclid_dist=None):
+               euclid_dist=None,
+               avoid_small_clusters=True):
     self.n_clusters = n_clusters
     self.n_odd = bool(n_clusters % 2)
     self.alpha = alpha
     self.rng = np.random.default_rng(seed=random_state)
     self.n_init = n_init
     self.euclid_dist = euclid_dist
+    self.avoid_small_clusters = avoid_small_clusters
   
   def find_first_point(self, X):
     n = len(X)

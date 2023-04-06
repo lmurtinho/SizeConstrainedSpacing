@@ -103,6 +103,7 @@ class PRClustering():
         labels.append(cluster)
         closest_centroids.append(closest)
     labels = np.array(labels, dtype=int)
+    closest_centroids = np.array(closest_centroids, dtype=int)
     self.labels_ = labels
     return labels
 

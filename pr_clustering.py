@@ -43,20 +43,20 @@ class PRClustering():
     return best
   
   def find_distant_neighbor(self, X, u=None, i=None):
-    if not self.u_centers:
+    if not self.centers:
       dists_to_center = self.dists_to_centers
     else:
       dists_to_center = self.dists_to_centers.sum(axis=0)
       if u is not None:
         factor = self.n_clusters - 2*i + 2
         ed = (euclidean_distances(X[u].reshape(1, -1), X) * factor).flatten()
-        ed[self.u_centers + self.v_centers + [u]] = 0
+        ed[self.centers + [u]] = 0
         dists_to_center += ed
     best = dists_to_center.argmax()
     dists = euclidean_distances(X[best].reshape(1, -1), X)
     self.dists_to_centers = np.concatenate((self.dists_to_centers, dists))
     self.dists_to_centers[:,best] = 0
-    for i in self.u_centers + self.v_centers:
+    for i in self.centers:
       self.dists_to_centers[:,i] = 0
     if u:
       self.dists_to_centers[:,u] = 0
@@ -65,45 +65,35 @@ class PRClustering():
   def fit(self, X, y=None):
     # two "centers" will be selected at each iteration
     
-    self.u_centers = []
-    self.v_centers = []
+    self.centers = []
 
     k_ = (self.n_clusters - 1) // 2
     for i in tqdm(range(k_)):
-        if len(self.u_centers) == 0:
+        if len(self.centers) == 0:
            u = self.find_first_point(X)
         else:
            u = self.find_distant_neighbor(X)
         v = self.find_distant_neighbor(X, u, i)
-        self.u_centers.append(u)
-        self.v_centers.append(v)
+        self.centers.append(u)
+        self.centers.append(v)
     if not self.n_odd:
       u = self.find_distant_neighbor(X)
-      self.u_centers.append(u)
-    if self.n_odd:
-      assert len(self.u_centers) == k_
-    else:
-      assert len(self.u_centers) == k_ + 1
-    assert len(self.v_centers) == k_
-    del self.dists_to_centers
+      self.centers.append(u)
+    assert len(self.centers) == self.n_clusters - 1
+    # del self.dists_to_centers
 
   def predict(self, X):
     labels = []
     closest_centroids = []
-    centers = self.u_centers + self.v_centers
-    dists_uv = euclidean_distances(X[centers])
+    dists_uv = euclidean_distances(X[self.centers])
     dists_uv *= self.alpha
     for i in tqdm(range(len(X))):
-      if i in self.u_centers:
-        cluster = self.u_centers.index(i)
-        labels.append(cluster)
-        closest_centroids.append(cluster)
-      elif i in self.v_centers:
-        cluster = self.v_centers.index(i) + len(self.u_centers)
+      if i in self.centers:
+        cluster = self.centers.index(i)
         labels.append(cluster)
         closest_centroids.append(cluster)
       else:
-        cluster, closest = self.find_label(X, X[i], centers, dists_uv)
+        cluster, closest = self.find_label(X, X[i], dists_uv)
         labels.append(cluster)
         closest_centroids.append(closest)
     labels = np.array(labels, dtype=int)
@@ -112,31 +102,28 @@ class PRClustering():
     self.closest_centroids_ = closest_centroids
     return labels
 
-  def find_label(self, X, x, centers, dists_uv):
+  def find_label(self, X, x, dists_uv):
     min_dist = np.inf
     label = None
-    n_u = len(self.u_centers)
-    n_v = len(self.v_centers)
-
-    dists_x = euclidean_distances(X[centers],
+    dists_x = euclidean_distances(X[self.centers],
                                      x.reshape(1, -1)).flatten()
-    idx = dists_x.argmin()
+    closest = dists_x.argmin()
 
     # find closest cluster
-    if idx < n_u:
-      closest = 2 * idx
-    else:
-      closest = 2 * (idx % n_u) + 1
+    # if idx < n_u:
+    #   closest = 2 * idx
+    # else:
+    #   closest = 2 * (idx % n_u) + 1
 
     # check if x should go to closest cluster or to last cluster
     min_dist = dists_x.min()
     dists_x -= min_dist
     one_min = np.isclose(dists_x, 0).sum()
-    all_distant = np.all(dists_x >= dists_uv[idx])
+    all_distant = np.all(dists_x >= dists_uv[closest])
     if one_min and all_distant:
       label = closest
     else:
-      label = n_u + n_v
+      label = self.n_clusters - 1
 
     return label, closest
 

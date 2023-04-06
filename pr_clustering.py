@@ -95,9 +95,13 @@ class PRClustering():
     dists_uv *= self.alpha
     for i in tqdm(range(len(X))):
       if i in self.u_centers:
-        labels.append(self.u_centers.index(i))
+        cluster = self.u_centers.index(i)
+        labels.append(cluster)
+        closest_centroids.append(cluster)
       elif i in self.v_centers:
-        labels.append(self.v_centers.index(i) + len(self.u_centers))
+        cluster = self.v_centers.index(i) + len(self.u_centers)
+        labels.append(cluster)
+        closest_centroids.append(cluster)
       else:
         cluster, closest = self.find_label(X, X[i], centers, dists_uv)
         labels.append(cluster)

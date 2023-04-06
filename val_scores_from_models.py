@@ -8,8 +8,10 @@ import json
 import pandas as pd
 
 def get_uv_dists(model, data):
-    u_centers = model.u_centers
-    v_centers = model.v_centers
+    u_centers = model.centers[::2]
+    v_centers = model.centers[1::2]
+    if len(u_centers) > len(v_centers):
+        u_centers = u_centers[:-1]
     dists = np.diag(euclidean_distances(data[u_centers], 
                                         data[v_centers]))
     return dists

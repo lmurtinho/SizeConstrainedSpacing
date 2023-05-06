@@ -13,7 +13,7 @@ class FeasibleSpacing():
         self.n_clusters = n_clusters
         self.min_size = min_size
         self.verbose = verbose
-    
+
     def fit_predict(self, X, sl_model=None):
         """
         Fit the model and returns the labels of each element in X.
@@ -42,7 +42,7 @@ class FeasibleSpacing():
         _, clusters = self.agglomerate_clusters(n_per_cluster, n+1, track_clusters=True)
         self.labels_ = clusters[labels]
         return self.labels_
-    
+
     def get_cluster_distribution(self, tree, n):
         """
         Returns the number of elements per cluster at each level of the tree.
@@ -57,7 +57,7 @@ class FeasibleSpacing():
             n_per_cluster[c1] = n_per_cluster[c2] = 0
             clusters.append([i for i in n_per_cluster if i > 0])
         return clusters
-    
+
     def agglomerate_clusters(self, s, max_val, track_clusters=False):
         """
         Agglomerates the clusters in s into k clusters.
@@ -83,7 +83,7 @@ class FeasibleSpacing():
             return vals, corresp
         else:
             return vals
-    
+
     def find_n(self, clusters, max_val, n_min, n_max):
         """
         Finds the smallest number of clusters that can be agglomerated into k clusters,
@@ -107,7 +107,7 @@ class FeasibleSpacing():
             return self.find_n(clusters, max_val, n_min, n)
         else:
             return self.find_n(clusters, max_val, n, n_max)
-    
+
     def get_labels(self, X, model, n_clusters):
         """
         Returns the labels of the clusters in model, with n_clusters clusters.

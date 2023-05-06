@@ -4,14 +4,14 @@ from sklearn.cluster import AgglomerativeClustering
 
 class FeasibleSpacing():
 
-    def __init__(self, n_clusters, min_size, verbose=False):
+    def __init__(self, n_clusters, min_size, factor=0.75, verbose=False):
         """
         Algorithm to find a partition into n_clusters clusters
         by optimizing the minimum spacing, provided that all
         clusters in the partition have at least min_size elements.
         """
         self.n_clusters = n_clusters
-        self.min_size = 3 * min_size // 4
+        self.min_size = int(min_size * factor)
         self.verbose = verbose
 
     def fit_predict(self, X, sl_model=None):

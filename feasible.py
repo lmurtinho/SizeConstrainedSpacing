@@ -11,7 +11,7 @@ class FeasibleSpacing():
         clusters in the partition have at least min_size elements.
         """
         self.n_clusters = n_clusters
-        self.min_size = min_size
+        self.min_size = 3 * min_size // 4
         self.verbose = verbose
 
     def fit_predict(self, X, sl_model=None):

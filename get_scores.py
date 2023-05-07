@@ -18,11 +18,11 @@ def get_data(data_path, filename):
                     .values])
     return data, int(k)
 
-def get_all_dists(data, labels):
+def get_all_dists(data, labels, verbose=False):
   unique_labels = np.unique(labels)
   n_labels = len(unique_labels)
   ans = np.zeros((n_labels, n_labels))
-  for i in tqdm(range(n_labels), disable=disable_tqdm):
+  for i in tqdm(range(n_labels), disable=not verbose):
     for j in range(i, n_labels):
       if i != j:
         ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],

@@ -74,7 +74,7 @@ def get_scores(data, labels, true_labels=None):
   return scores
 
 def get_mst_cost(data, labels):
-  dists = gs.get_all_dists(data, labels)
-  mst_edges = gs.get_mst_edges(dists)
+  dists = get_all_dists(data, labels)
+  mst_edges = get_mst_edges(dists)
   mst_weights = [edge[2]['weight'] for edge in mst_edges]
   return sum(mst_weights)

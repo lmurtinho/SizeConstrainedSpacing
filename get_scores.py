@@ -73,8 +73,27 @@ def get_scores(data, labels, true_labels=None):
     scores['nmi'] = nmi(true_labels, labels)
   return scores
 
-def get_mst_cost(data, labels):
+def get_mst_weights(data, labels):
+  """
+  Returns the weights of the MST
+  of the partition of the data given by the labels.
+  """
   dists = get_all_dists(data, labels)
   mst_edges = get_mst_edges(dists)
-  mst_weights = [edge[2]['weight'] for edge in mst_edges]
+  return [edge[2]['weight'] for edge in mst_edges]
+
+def get_mst_cost(data, labels):
+  """
+  Returns the MST cost
+  of the partition of the data given by the labels.
+  """
+  mst_weights = get_mst_weights(data, labels)
   return sum(mst_weights)
+
+def get_min_dist(data, labels):
+  """
+  Returns the minimum intercluster distance
+  of the partition of the data given by the labels.
+  """
+  dists = get_all_dists(data, labels)
+  return min(dists)

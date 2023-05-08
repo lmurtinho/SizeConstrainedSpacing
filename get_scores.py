@@ -19,49 +19,49 @@ def get_data(data_path, filename):
     return data, int(k)
 
 def get_all_dists(data, labels, verbose=False):
-  unique_labels = np.unique(labels)
-  n_labels = len(unique_labels)
-  ans = np.zeros((n_labels, n_labels))
-  for i in tqdm(range(n_labels), disable=not verbose):
-    for j in range(i, n_labels):
-      if i != j:
-        ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
+    unique_labels = np.unique(labels)
+    n_labels = len(unique_labels)
+    ans = np.zeros((n_labels, n_labels))
+    for i in tqdm(range(n_labels), disable=not verbose):
+        for j in range(i, n_labels):
+            if i != j:
+                ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
                                                   data[labels==j]).min()
-  return ans
+    return ans
 
 def get_mst_edges(dists):
-  g = nx.from_numpy_array(dists)
-  mst = nx.minimum_spanning_tree(g)
-  assert mst.number_of_edges() == g.number_of_nodes() - 1
-  assert mst.number_of_nodes() == g.number_of_nodes()
-  return mst.edges.data()
+    g = nx.from_numpy_array(dists)
+    mst = nx.minimum_spanning_tree(g)
+    assert mst.number_of_edges() == g.number_of_nodes() - 1
+    assert mst.number_of_nodes() == g.number_of_nodes()
+    return mst.edges.data()
 
 def get_graph_edges(dists):
-  g = nx.from_numpy_array(dists)
-  return g.edges.data()
+    g = nx.from_numpy_array(dists)
+    return g.edges.data()
 
 def get_kmeans_losses(data, labels):
-  centers = pd.DataFrame(data).groupby(labels).mean()
-  dists = [np.square(euclidean_distances(data[labels==i],
+    centers = pd.DataFrame(data).groupby(labels).mean()
+    dists = [np.square(euclidean_distances(data[labels==i],
                                         centers.iloc[i]\
                                           .values\
                                             .reshape(1,-1))
                     )\
                 .sum()
           for i in range(len(centers))]
-  return np.array(dists)
+    return np.array(dists)
 
 def get_cluster_std(labels):
-  return np.unique(labels, return_counts=True)[1].std()
+    return np.unique(labels, return_counts=True)[1].std()
 
 def get_scores(data, labels, true_labels=None):
-  # vector_dists = euclidean_distances(data)
-  dists = get_all_dists(data, labels)
-  graph_edges = get_graph_edges(dists)
-  mst_edges = get_mst_edges(dists)
-  mst_weights = [edge[2]['weight'] for edge in mst_edges]
-  graph_weights = [edge[2]['weight'] for edge in graph_edges]
-  scores =  {'mst_cost': sum(mst_weights),
+    # vector_dists = euclidean_distances(data)
+    dists = get_all_dists(data, labels)
+    graph_edges = get_graph_edges(dists)
+    mst_edges = get_mst_edges(dists)
+    mst_weights = [edge[2]['weight'] for edge in mst_edges]
+    graph_weights = [edge[2]['weight'] for edge in graph_edges]
+    scores =  {'mst_cost': sum(mst_weights),
             'min_dist': min(mst_weights),
             'avg_dist': sum(graph_weights) / len(graph_weights),
             'sil_score': silhouette_score(data, labels),
@@ -69,31 +69,32 @@ def get_scores(data, labels, true_labels=None):
             'db_score': davies_bouldin_score(data, labels),
             'kmeans_loss': get_kmeans_losses(data, labels).sum(),
             'cluster_std': get_cluster_std(labels)}
-  if true_labels is not None:
-    scores['nmi'] = nmi(true_labels, labels)
-  return scores
+    if true_labels is not None:
+        scores['nmi'] = nmi(true_labels, labels)
+    return scores
 
 def get_mst_weights(data, labels):
-  """
-  Returns the weights of the MST
-  of the partition of the data given by the labels.
-  """
-  dists = get_all_dists(data, labels)
-  mst_edges = get_mst_edges(dists)
-  return [edge[2]['weight'] for edge in mst_edges]
+    """
+    Returns the weights of the MST
+    of the partition of the data given by the labels.
+    """
+    dists = get_all_dists(data, labels)
+    mst_edges = get_mst_edges(dists)
+    return [edge[2]['weight'] for edge in mst_edges]
 
 def get_mst_cost(data, labels):
-  """
-  Returns the MST cost
-  of the partition of the data given by the labels.
-  """
-  mst_weights = get_mst_weights(data, labels)
-  return sum(mst_weights)
+    """
+    Returns the MST cost
+    of the partition of the data given by the labels.
+    """
+    mst_weights = get_mst_weights(data, labels)
+    return sum(mst_weights)
 
 def get_min_dist(data, labels):
-  """
-  Returns the minimum intercluster distance
-  of the partition of the data given by the labels.
-  """
-  dists = get_all_dists(data, labels)
-  return min(dists)
+    """
+    Returns the minimum intercluster distance
+    of the partition of the data given by the labels.
+    """
+    dists = get_all_dists(data, labels)
+    graph_edges = get_graph_edges(dists)
+    return min(dists)

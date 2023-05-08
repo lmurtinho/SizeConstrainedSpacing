@@ -95,6 +95,5 @@ def get_min_dist(data, labels):
     Returns the minimum intercluster distance
     of the partition of the data given by the labels.
     """
-    dists = get_all_dists(data, labels)
-    graph_edges = get_graph_edges(dists)
-    return min(dists)
+    mst_weights = get_mst_weights(data, labels)
+    return min(mst_weights)

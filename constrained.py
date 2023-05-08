@@ -73,7 +73,7 @@ class ConstrainedMaxMST():
         else:
             labels = fs_model.labels_
         if self.store_costs:
-            self.min_dists.append(get_min_dist(data, labels))
+            self.min_dists.append(get_min_dist(X, labels))
 
         counts = np.bincount(labels)
         non_visited = np.argsort(counts)[::-1]

@@ -53,9 +53,16 @@ class FeasibleSpacing():
         clusters = [[1] * n]
         for i in tqdm(tree, disable=not self.verbose):
             c1, c2 = i
-            n_per_cluster.append(n_per_cluster[c1] + n_per_cluster[c2])
+            val1 = n_per_cluster[c1]
+            val2 = n_per_cluster[c2]
+            val = n_per_cluster[c1] + n_per_cluster[c2]
+            new_clusters = [*clusters[-1]]
+            n_per_cluster.append(val)
             n_per_cluster[c1] = n_per_cluster[c2] = 0
-            clusters.append([i for i in n_per_cluster if i > 0])
+            new_clusters.remove(val1)
+            new_clusters.remove(val2)
+            new_clusters.append(val)
+            clusters.append(new_clusters)
         return clusters
 
     def agglomerate_clusters(self, s, max_val, track_clusters=False):

@@ -1,7 +1,7 @@
 from sklearn.cluster import AgglomerativeClustering
 from feasible import FeasibleSpacing
 import numpy as np
-from get_scores import get_mst_cost
+from get_scores import get_mst_cost, get_min_dist
 
 class ConstrainedMaxMST():
 
@@ -18,6 +18,8 @@ class ConstrainedMaxMST():
         self.verbose = verbose
         self.random_state = random_state
         self.store_costs = store_costs
+        if store_costs:
+            self.min_dists = []
     
     def fit(self, X, sl_model=None):
         """
@@ -36,6 +38,8 @@ class ConstrainedMaxMST():
         ks = range(2, self.n_clusters+1)
         self.labels_for_k = {k: self.fit_for_k(X, k, sl_model)
                              for k in ks}
+        if self.store_costs:
+            self.min_dist_sum = sum(self.min_dists)
     
     def predict(self, X):
         """
@@ -68,6 +72,8 @@ class ConstrainedMaxMST():
             labels = fs_model.fit_predict(X, sl_model)
         else:
             labels = fs_model.labels_
+        if self.store_costs:
+            self.min_dists.append(get_min_dist(data, labels))
 
         counts = np.bincount(labels)
         non_visited = np.argsort(counts)[::-1]

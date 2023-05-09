@@ -68,7 +68,7 @@ class ConstrainedMaxMST():
             fs_model = FeasibleSpacing(n_clusters=k,
                                        min_size=self.min_size,
                                        factor=self.factor,
-                                       verbose=self.verbose)
+                                       verbose=False)
             labels = fs_model.fit_predict(X, sl_model)
         else:
             labels = fs_model.labels_
@@ -119,6 +119,8 @@ class ConstrainedMaxMST():
         min_size = max(int(self.factor * self.min_size), 1)
         if n_new_clusters + n_old_clusters + (size_current // min_size) < self.n_clusters:
             n_groups = size_current // min_size
+            if size_current % min_size:
+                n_groups += 1
             if self.verbose:
                 print(f'{n_groups} groups of type A')
         else:
@@ -135,7 +137,9 @@ class ConstrainedMaxMST():
         """
         remainder = len(labels_to_split) % n_groups
         if self.verbose:
-            print(len(labels_to_split), n_groups, remainder)
+            print('splitting cluster of size', len(labels_to_split), end=' ')
+            print('into', n_groups, 'groups of size', len(labels_to_split) // n_groups, end=' ')
+            print('with a remainder of', remainder, 'elements')
         if remainder:
             splits = np.split(labels_to_split[:-remainder], n_groups)
             for i in range(remainder):

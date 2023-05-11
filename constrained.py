@@ -55,6 +55,10 @@ class ConstrainedMaxMST():
         self.labels_ = self.labels_for_k[self.best_k]
         return self.labels_
 
+    def fit_predict(self, X, sl_model=None):
+        self.fit(X, sl_model)
+        self.predict(X)
+
     def fit_for_k(self, X, k, sl_model, fs_model=None):
         """
         Finds a FeasibleSpacing k-clustering and adapts it to

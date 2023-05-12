@@ -1,4 +1,5 @@
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics.pairwise import euclidean_distances
 from feasible import FeasibleSpacing
 import numpy as np
 from get_scores import get_mst_cost, get_min_dist
@@ -6,7 +7,7 @@ from get_scores import get_mst_cost, get_min_dist
 class ConstrainedMaxMST():
 
     def __init__(self, n_clusters, min_size, factor=0.75, verbose=False, random_state=None,
-                 store_costs=True):
+                 store_costs=True, search_all=True):
         """
         Algorithm to find a partition into n_clusters clusters
         by optimizing the minimum spanning tree cost, provided that all
@@ -46,7 +47,14 @@ class ConstrainedMaxMST():
         Returns the partition with the best MST cost among all partitions
         found by the `fit` method.
         """
-        ks = range(2, self.n_clusters+1)
+        if self.search_all:
+            ks = range(2, self.n_clusters+1)
+        else:
+            ks = [2]
+            while ks[-1] < self.n_clusters:
+                ks.append(2 * ks[-1])
+            ks.append(self.n_clusters)
+
         mst_cost_for_k = {k: get_mst_cost(X, self.labels_for_k[k])
                           for k in ks}
         if self.store_costs:

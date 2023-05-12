@@ -18,15 +18,18 @@ def get_data(data_path, filename):
                     .values])
     return data, int(k)
 
-def get_all_dists(data, labels, verbose=False):
+def get_all_dists(data, labels, all_dists=None, verbose=False):
     unique_labels = np.unique(labels)
     n_labels = len(unique_labels)
     ans = np.zeros((n_labels, n_labels))
     for i in tqdm(range(n_labels), disable=not verbose):
         for j in range(i, n_labels):
             if i != j:
-                ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
-                                                  data[labels==j]).min()
+                if all_dists is not None:
+                    ans[i,j] = ans[j,i] = all_dists[labels==i][:,labels==j].min()
+                else:
+                    ans[i,j] = ans[j,i] = euclidean_distances(data[labels==i],
+                                                              data[labels==j]).min()
     return ans
 
 def get_mst_edges(dists):
@@ -73,27 +76,27 @@ def get_scores(data, labels, true_labels=None):
         scores['nmi'] = nmi(true_labels, labels)
     return scores
 
-def get_mst_weights(data, labels):
+def get_mst_weights(data, labels, all_dists=None):
     """
     Returns the weights of the MST
     of the partition of the data given by the labels.
     """
-    dists = get_all_dists(data, labels)
+    dists = get_all_dists(data, labels, all_dists)
     mst_edges = get_mst_edges(dists)
     return [edge[2]['weight'] for edge in mst_edges]
 
-def get_mst_cost(data, labels):
+def get_mst_cost(data, labels, all_dists=None):
     """
     Returns the MST cost
     of the partition of the data given by the labels.
     """
-    mst_weights = get_mst_weights(data, labels)
+    mst_weights = get_mst_weights(data, labels, all_dists)
     return sum(mst_weights)
 
-def get_min_dist(data, labels):
+def get_min_dist(data, labels, all_dists=None):
     """
     Returns the minimum intercluster distance
     of the partition of the data given by the labels.
     """
-    mst_weights = get_mst_weights(data, labels)
+    mst_weights = get_mst_weights(data, labels, all_dists)
     return min(mst_weights)

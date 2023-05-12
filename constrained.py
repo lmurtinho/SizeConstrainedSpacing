@@ -65,7 +65,7 @@ class ConstrainedMaxMST():
 
     def fit_predict(self, X, sl_model=None):
         self.fit(X, sl_model)
-        self.predict(X)
+        return self.predict(X)
 
     def fit_for_k(self, X, k, sl_model, fs_model=None):
         """

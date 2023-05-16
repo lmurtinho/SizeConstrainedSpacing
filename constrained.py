@@ -19,6 +19,13 @@ class ConstrainedMaxMST():
         self.verbose = verbose
         self.random_state = random_state
         self.store_costs = store_costs
+        self.search_all = search_all
+        if search_all:
+            self.k_list = range(2, self.n_clusters+1)
+        else:
+            self.k_list = [self.n_clusters]
+            while self.k_list[-1] > 2:
+                self.k_list.append(max(self.k_list[-1] // 2, 2))
         if store_costs:
             self.min_dists = []
     
@@ -36,9 +43,8 @@ class ConstrainedMaxMST():
                                                distance_threshold=0,
                                                linkage='single')
             sl_model.fit(X)
-        ks = range(2, self.n_clusters+1)
         self.labels_for_k = {k: self.fit_for_k(X, k, sl_model)
-                             for k in ks}
+                             for k in self.k_list}
         if self.store_costs:
             self.min_dist_sum = sum(self.min_dists)
     
@@ -47,16 +53,8 @@ class ConstrainedMaxMST():
         Returns the partition with the best MST cost among all partitions
         found by the `fit` method.
         """
-        if self.search_all:
-            ks = range(2, self.n_clusters+1)
-        else:
-            ks = [2]
-            while ks[-1] < self.n_clusters:
-                ks.append(2 * ks[-1])
-            ks.append(self.n_clusters)
-
         mst_cost_for_k = {k: get_mst_cost(X, self.labels_for_k[k])
-                          for k in ks}
+                          for k in self.k_list}
         if self.store_costs:
             self.mst_cost_for_k = mst_cost_for_k
         self.best_k = max(mst_cost_for_k, key=mst_cost_for_k.get)

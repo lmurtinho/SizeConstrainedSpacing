@@ -7,7 +7,7 @@ Minimum Size Constraints**:
 The results of the experiments in the paper can be found in `full_results.csv`, and can be reproduced by running the following command:
 
 ```
-python generate_models.py --results_path /path/to/results --sl_filepath /path/to/results/results_sl.joblib --km_filepath /path/to/results/results_km.joblib -sm
+python generate_models.py --results_path /path/to/results --sl_filepath /path/to/results/results_sl.joblib --km_filepath /path/to/results/results_km.joblib -sm -fr
 ````
 
 Check `python generate_models.py --help` for details on how to run the experiments.

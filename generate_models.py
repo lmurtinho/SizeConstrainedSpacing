@@ -161,7 +161,7 @@ parser.add_argument('-v', '--verbose', action='store_true',
                     help='prints progress information')
 parser.add_argument('-sm', '--save_models', action="store_true",
                     help="saves a .joblib file with the fitted models")
-parser.add_arguments('-fr', '--full_results', action='store_true',
+parser.add_argument('-fr', '--full_results', action='store_true',
                      help="saves all results in a single .csv file")
 
 if __name__ == '__main__':

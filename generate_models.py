@@ -143,7 +143,7 @@ def retrieve_results(algo, dataset_list, min_size_factor=None,
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-a', '--algos', default=['sl', 'km', 'fs', 'cm_full', 'cm_fast'],
+parser.add_argument('-a', '--algos', default=['sl', 'km', 'fs', 'cm_fast', 'cm_full'],
                     help='algorithms to be used for clustering')
 parser.add_argument('-dl', '--dataset_list', nargs='+', default=DATASET_LIST,
                     help="list of datasets for which models will be generated")
@@ -161,10 +161,15 @@ parser.add_argument('-v', '--verbose', action='store_true',
                     help='prints progress information')
 parser.add_argument('-sm', '--save_models', action="store_true",
                     help="saves a .joblib file with the fitted models")
+parser.add_arguments('-fr', '--full_results', action='store_true',
+                     help="saves all results in a single .csv file")
 
 if __name__ == '__main__':
     args = parser.parse_args()
     
+    if args.full_results:
+        full_results = []
+
     for algo in args.algos:
     
         # Get results
@@ -172,7 +177,10 @@ if __name__ == '__main__':
             message = f'finding models for algorithm {algo}'
         results = retrieve_results(algo, args.dataset_list, args.min_size_factor, args.km_filepath,
                                    args.sl_filepath, args.verbose)
-        full_results = pd.DataFrame(results)
+        results = pd.DataFrame(results)
+
+        if args.full_results:
+            full_results.append(results)
 
         # Save results
         os.makedirs(args.results_path, exist_ok=True)
@@ -182,5 +190,12 @@ if __name__ == '__main__':
         else:
             filepath = f'{args.results_path}/results_{algo}'
         if args.save_models:
-            joblib.dump(full_results, f'{filepath}.joblib')
-        full_results.drop(columns=['model']).to_csv(f'{filepath}.csv', index=False)
+            joblib.dump(results, f'{filepath}.joblib')
+        results.drop(columns=['model']).to_csv(f'{filepath}.csv', index=False)
+    if args.full_results:
+        if args.hour_in_filename:
+            now = datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M')
+            fr_path = f'{args.results_path}/{now}_full_results.csv'
+        else:
+            fr_path = f'{args.results_path}/full_results.csv'
+        pd.concat(full_results).drop(columns=['model']).to_csv(fr_path, index=False)

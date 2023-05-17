@@ -174,7 +174,7 @@ if __name__ == '__main__':
     
         # Get results
         if args.verbose:
-            message = f'finding models for algorithm {algo}'
+            print(f'finding models for algorithm {algo}')            
         results = retrieve_results(algo, args.dataset_list, args.min_size_factor, args.km_filepath,
                                    args.sl_filepath, args.verbose)
         results = pd.DataFrame(results)

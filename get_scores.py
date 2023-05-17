@@ -1,12 +1,9 @@
-from sklearn.metrics import silhouette_score
-from sklearn.metrics import calinski_harabasz_score
-from sklearn.metrics import davies_bouldin_score
-from sklearn.metrics import normalized_mutual_info_score as nmi
-from sklearn.metrics.pairwise import euclidean_distances
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
 import pandas as pd
+from sklearn.metrics import normalized_mutual_info_score as nmi
+from sklearn.metrics.pairwise import euclidean_distances
 
 disable_tqdm = False
 
@@ -66,12 +63,7 @@ def get_scores(data, labels, true_labels=None):
     graph_weights = [edge[2]['weight'] for edge in graph_edges]
     scores =  {'mst_cost': sum(mst_weights),
             'min_dist': min(mst_weights),
-            'avg_dist': sum(graph_weights) / len(graph_weights),
-            'sil_score': silhouette_score(data, labels),
-            'ch_score': calinski_harabasz_score(data, labels),
-            'db_score': davies_bouldin_score(data, labels),
-            'kmeans_loss': get_kmeans_losses(data, labels).sum(),
-            'cluster_std': get_cluster_std(labels)}
+            'kmeans_loss': get_kmeans_losses(data, labels).sum()}
     if true_labels is not None:
         scores['nmi'] = nmi(true_labels, labels)
     return scores

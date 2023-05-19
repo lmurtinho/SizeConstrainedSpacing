@@ -132,7 +132,7 @@ def retrieve_results(algo, dataset_list, min_size_factor=None,
                 res['seed'] = rng_runs[i]
             if algo in ['cm_full', 'cm_fast']:
                 res['seed'] = 1
-                res['min_dist_upper_bound'] = model.min_dist_sum,
+                res['min_dist_upper_bound'] = model.min_dist_sum
                 res['search_all'] = search_all
             if algo in ['cm_full', 'cm_fast', 'fs']:
                 res['min_size_factor'] = min_size_factor
